@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 
-from .db import Base, engine, SessionLocal
-from . import models, schemas
+from .app.db import Base, engine, SessionLocal
+from .app import models, schemas
 
 app = FastAPI(title="Job Application Tracker")
 
