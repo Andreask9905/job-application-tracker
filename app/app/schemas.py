@@ -27,3 +27,8 @@ class ApplicationOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class StatsOut(BaseModel):
+    total: int
+    by_status: dict[str, int]
