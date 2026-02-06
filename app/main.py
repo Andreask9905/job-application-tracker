@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Query
+from fastapi import FastAPI, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -63,6 +63,41 @@ def list_applications(
     )
 
 
+@app.get("/applications/{app_id}", response_model=schemas.ApplicationOut)
+def get_application(app_id: int, db: Session = Depends(get_db)):
+    row = db.query(models.Application).filter(models.Application.id == app_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Application not found")
+    return row
+
+
+@app.patch("/applications/{app_id}", response_model=schemas.ApplicationOut)
+def update_application(app_id: int, payload: schemas.ApplicationUpdate, db: Session = Depends(get_db)):
+    row = db.query(models.Application).filter(models.Application.id == app_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    data = payload.model_dump(exclude_unset=True)
+
+    for key, value in data.items():
+        setattr(row, key, value)
+
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+@app.delete("/applications/{app_id}", status_code=204)
+def delete_application(app_id: int, db: Session = Depends(get_db)):
+    row = db.query(models.Application).filter(models.Application.id == app_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    db.delete(row)
+    db.commit()
+    return None
+
+
 @app.get("/stats")
 def stats(db: Session = Depends(get_db)):
     total = db.query(func.count(models.Application.id)).scalar() or 0
@@ -77,4 +112,3 @@ def stats(db: Session = Depends(get_db)):
         "total": total,
         "by_status": {status: count for status, count in by_status},
     }
-
