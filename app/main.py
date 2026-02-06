@@ -98,7 +98,7 @@ def delete_application(app_id: int, db: Session = Depends(get_db)):
     return None
 
 
-@app.get("/stats")
+@app.get("/stats", response_model=schemas.StatsOut)
 def stats(db: Session = Depends(get_db)):
     total = db.query(func.count(models.Application.id)).scalar() or 0
 
@@ -112,3 +112,4 @@ def stats(db: Session = Depends(get_db)):
         "total": total,
         "by_status": {status: count for status, count in by_status},
     }
+
